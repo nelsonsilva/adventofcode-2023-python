@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+<head>
+  <script type="module" src="https://cdn.jsdelivr.net/gh/vanillawc/wc-codemirror@1/index.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/gh/vanillawc/wc-codemirror@1/mode/python/python.js"></script>
+  <script src="https://pyscript.net/tech-preview/micropython/micropython.js"></script>
+  <title>Advent of Code 2023</title>
+  <link rel="icon" href="https://adventofcode.com/favicon.png">
+</head>
+
+<body>
+  <select id="days" onchange="select(event.target.value)"></select>
+  <wc-codemirror id="editor" mode="python" src="day1.py"></wc-codemirror>
+  <button onclick="execute()">Run</button>
+  <pre><code id="output"></code></pre>
+
+  <script>
+    const LAST = 1;
+    const FILES = [];
+
+    for (let day = 1; day <= LAST; day++) {
+      days.add(new Option(`Day ${day}`, `day${day}`));
+      FILES.push(`day${day}.txt`);
+    }
+
+    const clear = () => output.innerText = '';
+
+    const select = (day) => {
+      editor.src = `${day}.py`;
+      clear();
+    }
+
+    function execute() {
+      clear();
+      mp_js_do_str(editor.value);
+    }
+
+    // Micropython
+    FILES.forEach(path => fetch(path).then(r => r.text().then(f => Module.FS.writeFile(path, f))));
+
+    document.addEventListener('micropython-print', (e) => output.innerText += e.data);
+
+    let mp_js_startup = Module['onRuntimeInitialized'];
+    Module["onRuntimeInitialized"] = async function () {
+      mp_js_startup();
+      mp_js_init(1024 * 1024); // 1Mb
+    }
+
+  </script>
+</body>
+
+</html>
